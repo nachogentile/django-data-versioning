@@ -1,56 +1,74 @@
-from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
+
+from nested_inline.admin import NestedModelAdmin, NestedStackedInline
 
 from data_versioning.models import UserDataVersion
 
 
-class DynamicDbAdmin(admin.ModelAdmin):
+def _get_db_by_user(user):
+    """
+    Args:
+        user (auth.User): Instance of Django user.
+
+    Returns:
+        (str) database name.
+    """
+    try:
+        data = UserDataVersion.objects.get(user=user)
+    except ObjectDoesNotExist:
+        return "default"
+    return data.current_version.name
+
+
+class DynamicDbAdmin(NestedModelAdmin):
     """
     This admin implementation overrides all the methods where a model is modified in order to use the database
     assigned to the user that is using the admin.
     """
-    def _get_db_by_user(self, user):
-        """
-        Args:
-            user (auth.User): Instance of Django user.
-
-        Returns:
-            (str) database name.
-        """
-        try:
-            data = UserDataVersion.objects.get(user=user)
-        except ObjectDoesNotExist:
-            return "default"
-        return data.current_version.name
-
-    def get_queryset(self, request):
-        """
-        Overrides standard queryset to use user assigned database.
-        """
-        db = self._get_db_by_user(request.user)
-        qs = self.model._default_manager.using(db)
-        ordering = self.get_ordering(request)
-        if ordering:
-            qs = qs.order_by(*ordering)
-        return qs
+    using = 'other'
 
     def save_model(self, request, obj, form, change):
-        """
-        Overrides standars save_model to save into the user assigned database.
-        """
-        db = self._get_db_by_user(request.user)
-        obj.save(using=db)
+        # Tell Django to save objects to the 'other' database.
+        obj.save(using=_get_db_by_user(request.user))
 
     def delete_model(self, request, obj):
-        """
-        Overrides standard delete_model method to delete from the user assigned database.
-        """
-        db = self._get_db_by_user(request.user)
-        obj.delete(using=db)
+        # Tell Django to delete objects from the 'other' database
+        obj.delete(using=_get_db_by_user(request.user))
 
-    def save_formset(self, request, form, formset, change):
-        """
-        Overrides standard method to use the user assigned database.
-        """
-        db = self._get_db_by_user(request.user)
-        formset.save(using=db)
+    def get_queryset(self, request):
+        # Tell Django to look for objects on the 'other' database.
+        return super(DynamicDbAdmin, self).get_queryset(request).using(_get_db_by_user(request.user))
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        # Tell Django to populate ForeignKey widgets using a query
+        # on the 'other' database.
+        return super(DynamicDbAdmin, self).formfield_for_foreignkey(db_field, request=request,
+                                                                    using=_get_db_by_user(request.user), **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+        # Tell Django to populate ManyToMany widgets using a query
+        # on the 'other' database.
+        return super(DynamicDbAdmin, self).formfield_for_manytomany(db_field, request=request,
+                                                                    using=_get_db_by_user(request.user), **kwargs)
+
+
+class DynamicDbStackedInline(NestedStackedInline):
+    using = 'other'
+
+    def get_queryset(self, request):
+        # Tell Django to look for inline objects on the 'other' database.
+        return super(DynamicDbStackedInline, self).get_queryset(request).using(_get_db_by_user(request.user))
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        # Tell Django to populate ForeignKey widgets using a query
+        # on the 'other' database.
+        return super(DynamicDbStackedInline, self).formfield_for_foreignkey(db_field, request=request,
+                                                                            using=_get_db_by_user(request.user),
+                                                                            **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+        # Tell Django to populate ManyToMany widgets using a query
+        # on the 'other' database.
+        return super(DynamicDbStackedInline, self).formfield_for_manytomany(db_field, request=request,
+                                                                            using=_get_db_by_user(request.user),
+                                                                            **kwargs)

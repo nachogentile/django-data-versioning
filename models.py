@@ -1,5 +1,7 @@
 from django.db import models
 
+from data_versioning.setup_db import create_database
+
 
 class UserDataVersion(models.Model):
     """
@@ -21,3 +23,9 @@ class DataVersion(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        self.name = self.name.replace(' ', '_')
+        super(DataVersion, self).save()
+        create_database(self.name)
