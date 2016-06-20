@@ -18,7 +18,7 @@ class DynamicDbDict(dict):
             self._data[key] = copy
             return copy
         except Exception as e:
-            print(e)
+            pass
 
     def add_db(self, key, name):
         copy = self._data['default'].copy()
