@@ -1,6 +1,13 @@
 
 
 class DynamicDbDict(dict):
+    """
+    This dictionary allows to dinamically create connections for databases even when Django is already running.
+    This is intended to be use as a settings.DATABASES replacement. Check README.rst for more details.
+    When a database is not available directly on the dictionary, the dict will search in the data versions table and
+    create a database config dictionary on the fly, to trick Django into thinking that the database existed from the
+    very beginning of the execution.
+    """
     def __init__(self, initial_data):
         self.update(initial_data)
         self._data = initial_data
