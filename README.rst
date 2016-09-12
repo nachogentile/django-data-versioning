@@ -8,30 +8,30 @@ In order to use the versioning system follow these steps:
 
 - Change your database settings specification in order to look like this:
 
-.. code:: python
-    from data_versioning.dynamic_db_dict import DynamicDbDict
 
-    DATABASES = DynamicDbDict({
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'database/db.sqlite3'),
-        }
-    })
+from data_versioning.dynamic_db_dict import DynamicDbDict
+
+DATABASES = DynamicDbDict({
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'database/db.sqlite3'),
+    }
+})
 
 - In order to allow the admin to display the user selected database, use the ModelAdmin
   class provided with this package, like in the example below:
 
-.. code:: python
-    class CarGroupAdmin(DynamicDbAdmin):
-        fields = ["name", ]
-        list_display = ["name", ]
-        filter_horizontal = []
 
-    admin.site.register(CarGroup, CarGroupAdmin)
+class CarGroupAdmin(DynamicDbAdmin):
+    fields = ["name", ]
+    list_display = ["name", ]
+    filter_horizontal = []
+
+admin.site.register(CarGroup, CarGroupAdmin)
 
 
 - In order to perform migrate command on all the databases available, run the command "migrate_all" as following:
 
-.. code:: python
-    ./manage.py migrate_all
+
+./manage.py migrate_all
 
