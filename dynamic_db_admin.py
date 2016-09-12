@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 
-from nested_inline.admin import NestedModelAdmin, NestedStackedInline
+from django.contrib.admin import ModelAdmin, StackedInline
 
 from data_versioning.models import UserDataVersion
 
@@ -20,7 +20,7 @@ def _get_db_by_user(user):
     return data.current_version.name
 
 
-class DynamicDbAdmin(NestedModelAdmin):
+class DynamicDbAdmin(ModelAdmin):
     """
     This admin implementation overrides all the methods where a model is modified in order to use the database
     assigned to the user that is using the admin.
@@ -52,7 +52,7 @@ class DynamicDbAdmin(NestedModelAdmin):
                                                                     using=_get_db_by_user(request.user), **kwargs)
 
 
-class DynamicDbStackedInline(NestedStackedInline):
+class DynamicDbStackedInline(StackedInline):
     using = 'other'
 
     def get_queryset(self, request):

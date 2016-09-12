@@ -29,3 +29,9 @@ In order to use the versioning system follow these steps:
 
     admin.site.register(CarGroup, CarGroupAdmin)
 
+
+- In order to perform migrate command on all the databases available, run the command "migrate_all" as following:
+
+.. code:: python
+    ./manage.py migrate_all
+
