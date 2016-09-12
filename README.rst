@@ -1,6 +1,3 @@
-Installation
-============
-
 In order to use the versioning system follow these steps:
 
 - First of all, add 'data_versioning' to the INSTALLED_APPS list in your Django
