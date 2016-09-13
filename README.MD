@@ -33,4 +33,3 @@ admin.site.register(CarGroup, CarGroupAdmin)
 ```python
 ./manage.py migrate_all
 ```
-
